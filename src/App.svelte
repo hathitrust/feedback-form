@@ -1,5 +1,4 @@
 <script lang="ts">
-  // import svelteLogo from './assets/svelte.svg'
   import FeedbackForm from './lib/FeedbackForm.svelte'
 </script>
 
