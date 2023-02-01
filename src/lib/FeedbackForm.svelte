@@ -1,41 +1,21 @@
 <script lang="ts">
+
+  import '@shoelace-style/shoelace/dist/components/button/button.js';
+  import '@shoelace-style/shoelace/dist/components/input/input.js';
+  import '@shoelace-style/shoelace/dist/components/textarea/textarea.js';
+  import { serialize } from '@shoelace-style/shoelace/dist/utilities/form.js'
    
-    let name: string;
-    let email: string;
-    let summary: string;
-    let description: string;
-    let sendBrowserInfo: boolean = true;
+  let userURL: string = location.href;
+  let userAgent: string = navigator.userAgent;
+  
+  const onSubmit = async () => {
+    //shoelace serializer for turning FormData into JSON
+    const form = document.querySelector('form')
+    const data = serialize(form)
 
-    //format textarea input to replace textarea "new line" with new line character
-    const replaceNewLines = (description: string) => {
-      let regex = /[\r\n\x0B\x0C\u0085\u2028\u2029]+/g;
-      return description.replace(regex, " \\n ");
-    }
-
-    const buildData = () => {
-       
-        let formattedDescription: string = replaceNewLines(description)
-        let userAgent: string = navigator.userAgent;
-        let userURL: string = location.href;
-
-        const generalFormData = `{
-                "name": "${name}",
-                "email": "${email}",
-                "summary": "${summary}",
-                "description": "${formattedDescription}",
-                "userURL": "${userURL}",
-                "userAgent": "${userAgent}"
-        }` 
-        console.log(generalFormData)
-        return generalFormData
-        
-    }
-
-    async function doPost () {
-        
-         const res = await fetch('http://localhost:5000/api', {
-           method: 'POST', 
-            body: buildData(),
+    const res = await fetch('http://localhost:5000/api', {
+          method: 'POST', 
+            body: JSON.stringify(data),
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
@@ -44,37 +24,32 @@
 
         const json = await res.json()
         console.log(JSON.stringify(json))
-        
-    }
-    const onSubmit = (e) => {
-        
-        doPost()
-
     }
 </script>
 
 <form on:submit|preventDefault={onSubmit}>
-    <p>
+   
       <label for="name">Name: </label>
-      <input name="name" id="name" type="name" bind:value={name}/>
-    </p>
-    <p>
+      <sl-input name="name" id="name" type="name" ></sl-input>
+    
+   
       <label for="email">Email address &ast;</label>
-      <input name="email" id="email" type="email" bind:value={email}/>
-    </p>
-    <p>
+      <sl-input name="email" id="email" type="email" ></sl-input>
+   
       <label for="summary">Short summary &ast;</label>
-      <input name="summary" id="summary" type="text" bind:value={summary}/>
-    </p>
-    <p>
+      <sl-input name="summary" id="summary" type="text" ></sl-input>
+   
+    
+      <label for="bookDescription">Description or URL of the book</label>
+      <sl-input name="bookDescription" id="bookDescription" type="text" ></sl-input>
+     
       <label for="description">Full description or question</label>
-      <textarea name="description" id="description" bind:value={description}></textarea>
-    </p>
-    <p>
-      <input name="sendBrowserInfo" type="checkbox" id="sendBrowserInfo" bind:checked={sendBrowserInfo} />
-      <label for="autoLogin">Send my browser information to help investigate the issue</label>
-    </p>
-    <p>
-      <input class="btn" type="submit" value="Submit" aria-label="Submit" />
-    </p>
+      <sl-textarea name="description" id="description" ></sl-textarea>
+   
+      <input name="userURL" id="userURL" type="hidden" bind:value="{userURL}" />
+      <input name="userAgent" id="userAgent" type="hidden" bind:value="{userAgent}" />
+    
+    
+      <sl-button class="btn" type="submit" value="Submit" aria-label="Submit">Submit</sl-button>
+   
   </form>
