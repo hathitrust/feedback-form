@@ -5,7 +5,7 @@ A svelte + vite + typescript app that will eventually be a reusable component fo
 ## Try it out
 
 ```bash
-git clone
+git clone git@github.com:hathitrust/feedback-form.git
 cd feedback-form
 npm i
 npm run dev
