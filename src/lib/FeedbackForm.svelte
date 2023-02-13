@@ -11,6 +11,15 @@
   let userURL: string = location.href;
   let userAgent: string = navigator.userAgent;
 
+  //takes long string output of document.cookie and splits it into a usable javascript object
+  let cookies: object = document.cookie
+  .split(';')
+  .map(cookie => cookie.split('='))
+  .reduce((accumulator, [key, value]) => ({ ...accumulator, [key.trim()]: decodeURIComponent(value) }), {});
+
+  //if user ins't logged in, HTstatus cookie won't exist
+  let userAuthStatus: string = cookies.HTstatus || 'not logged in';
+
   let postResponseStatusCode;
 
   let loading = false;
@@ -60,6 +69,7 @@
    
       <input name="userURL" id="userURL" type="hidden" bind:value="{userURL}" />
       <input name="userAgent" id="userAgent" type="hidden" bind:value="{userAgent}" />
+      <input name="userAuthStatus" id="userAuthStatus" type="hidden" bind:value="{userAuthStatus}" />
     
       <div class="form-options">
       <sl-button class="btn form-button" variant="default" type="submit" value="Submit" aria-label="Submit">Cancel</sl-button>
