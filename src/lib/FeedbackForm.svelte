@@ -1,14 +1,27 @@
 <script lang="ts">
 
+  import FormMessage from './FormMessage.svelte';
+  import { slide } from 'svelte/transition';
   import '@shoelace-style/shoelace/dist/components/button/button.js';
   import '@shoelace-style/shoelace/dist/components/input/input.js';
   import '@shoelace-style/shoelace/dist/components/textarea/textarea.js';
   import { serialize } from '@shoelace-style/shoelace/dist/utilities/form.js'
+  import '@shoelace-style/shoelace/dist/components/alert/alert.js';
    
   let userURL: string = location.href;
   let userAgent: string = navigator.userAgent;
+
+  let postResponseStatusCode;
+
+  let loading = false;
   
+  // const isUserLoggedIn = async () => {
+  //   const res = await fetch('/cgi/ping');
+  //   const broken = res.json()
+  //   console.log(broken)
+  // }
   const onSubmit = async () => {
+    loading = true;
     //shoelace serializer for turning FormData into JSON
     const form = document.querySelector('form')
     const data = serialize(form)
@@ -23,10 +36,16 @@
         })
 
         const json = await res.json()
-        console.log(JSON.stringify(json))
+        postResponseStatusCode = res.status;
+        loading = false;
+        console.log(`request created in service desk ${json.serviceDeskId}: ${json.issueKey}`)
+        console.log('status code', postResponseStatusCode)
     }
 </script>
 
+
+
+<!-- <form on:submit|preventDefault={onSubmit}> -->
 <form on:submit|preventDefault={onSubmit}>
    
       <sl-input class="label-on-left" label="Name" name="name" id="name" type="name" ></sl-input>
@@ -44,9 +63,30 @@
     
       <div class="form-options">
       <sl-button class="btn form-button" variant="default" type="submit" value="Submit" aria-label="Submit">Cancel</sl-button>
-      <sl-button class="btn form-button" variant="primary" type="submit" value="Submit" aria-label="Submit">Submit</sl-button>
+      <sl-button class="btn form-button" variant="primary" type="submit" value="Submit" aria-label="Submit" {loading}>Submit</sl-button>
       </div>
-   
+
+      
+      <!-- <FormMessage /> -->
+      <section>
+        {#if postResponseStatusCode === 200}
+        <div transition:slide>
+          <sl-alert variant="success" open>
+            <sl-icon slot="icon" name="check2-circle"></sl-icon>
+            <strong>Thank you!</strong><br />
+            Your feedback has been submitted.
+          </sl-alert> 
+        </div>
+        {:else if postResponseStatusCode === 500}
+        <div transition:slide>
+          <sl-alert variant="danger" open>
+            <sl-icon slot="icon" name="exclamation-octagon"></sl-icon>
+            <strong>Oops!</strong><br />
+            There was an error submitting the form. Please try again or email us at support@hathitrust.org
+          </sl-alert> 
+        </div>
+        {/if}
+      </section>
   </form>
 
   <style>
