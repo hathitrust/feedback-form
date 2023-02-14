@@ -22,8 +22,6 @@
 
   let postResponseStatusCode;
 
-  
-
   // when true, spinner on submit button animates
   let loading = false;
   // when true, hides the element (in this case, the form)
