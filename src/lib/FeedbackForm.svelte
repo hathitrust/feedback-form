@@ -17,18 +17,15 @@
   .map(cookie => cookie.split('='))
   .reduce((accumulator, [key, value]) => ({ ...accumulator, [key.trim()]: decodeURIComponent(value) }), {});
 
-  //if user ins't logged in, HTstatus cookie won't exist
+  //if user isn't logged in, HTstatus cookie won't exist
   let userAuthStatus: string = cookies.HTstatus || 'not logged in';
 
   let postResponseStatusCode;
 
   let loading = false;
   
-  // const isUserLoggedIn = async () => {
-  //   const res = await fetch('/cgi/ping');
-  //   const broken = res.json()
-  //   console.log(broken)
-  // }
+  // TODO
+  // add try/catch to fetch
   const onSubmit = async () => {
     loading = true;
     //shoelace serializer for turning FormData into JSON
@@ -44,11 +41,20 @@
             }
         })
 
-        const json = await res.json()
-        postResponseStatusCode = res.status;
+    const json = await res.json()
+    postResponseStatusCode = res.status;
+
+    if (res.ok) {
+
+        
         loading = false;
         console.log(`request created in service desk ${json.serviceDeskId}: ${json.issueKey}`)
         console.log('status code', postResponseStatusCode)
+    } else {
+      loading = false;
+      throw new Error(`There was an error posting the form: ${res.status}, ${res.statusText}`)
+    }
+     
     }
 </script>
 
@@ -78,6 +84,7 @@
 
       
       <!-- <FormMessage /> -->
+    
       <section>
         {#if postResponseStatusCode === 200}
         <div transition:slide>
@@ -85,6 +92,14 @@
             <sl-icon slot="icon" name="check2-circle"></sl-icon>
             <strong>Thank you!</strong><br />
             Your feedback has been submitted.
+          </sl-alert> 
+        </div>
+        {:else if postResponseStatusCode === 429}
+        <div transition:slide>
+          <sl-alert variant="danger" open>
+            <sl-icon slot="icon" name="exclamation-octagon"></sl-icon>
+            <strong>Limit reached</strong><br />
+            You have reached the maximum amount of submissions for this time period. Please submit your request again another time.
           </sl-alert> 
         </div>
         {:else if postResponseStatusCode === 500}
