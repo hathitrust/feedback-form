@@ -29,8 +29,6 @@
   // when true, shows the success/failure alert message
   let submitted = false;
   
-  // TODO
-  // add try/catch to fetch
   const onSubmit = async () => {
     loading = true;
     //shoelace serializer for turning FormData into JSON
@@ -38,27 +36,27 @@
     const data = serialize(form)
 
     try {
-    const res = await fetch('http://localhost:5000/api', {
-          method: 'POST', 
-            body: JSON.stringify(data),
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            }
-        })
+      const res = await fetch('http://localhost:5000/api', {
+            method: 'POST', 
+              body: JSON.stringify(data),
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json'
+              }
+          })
 
-    const json = await res.json()
-    postResponseStatusCode = res.status;
-    loading = false;
-    submitted = true;
+      const json = await res.json()
+      postResponseStatusCode = res.status;
+      loading = false;
+      submitted = true;
 
-    if (res.ok) {
-      hidden = true;
-      console.log(`request created in service desk ${json.serviceDeskId}: ${json.issueKey}`)
-      console.log('status code', postResponseStatusCode)
-    } else {
-      throw new Error(`There was an error posting the form: ${res.status}, ${res.statusText}`)
-    }
+      if (res.ok) {
+        hidden = true;
+        console.log(`request created in service desk ${json.serviceDeskId}: ${json.issueKey}`)
+        console.log('status code', postResponseStatusCode)
+      } else {
+        throw new Error(`There was an error posting the form: ${res.status}, ${res.statusText}`)
+      }
     } catch(error) {
       loading = false;
       submitted = true;
