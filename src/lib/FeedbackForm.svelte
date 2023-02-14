@@ -22,7 +22,14 @@
 
   let postResponseStatusCode;
 
+  
+
+  // when true, spinner on submit button animates
   let loading = false;
+  // when true, hides the element (in this case, the form)
+  let hidden = false;
+  // when true, shows the success/failure alert message
+  let submitted = false;
   
   // TODO
   // add try/catch to fetch
@@ -32,6 +39,7 @@
     const form = document.querySelector('form')
     const data = serialize(form)
 
+    try {
     const res = await fetch('http://localhost:5000/api', {
           method: 'POST', 
             body: JSON.stringify(data),
@@ -43,55 +51,67 @@
 
     const json = await res.json()
     postResponseStatusCode = res.status;
+    loading = false;
+    submitted = true;
 
     if (res.ok) {
-
-        
-        loading = false;
-        console.log(`request created in service desk ${json.serviceDeskId}: ${json.issueKey}`)
-        console.log('status code', postResponseStatusCode)
+      hidden = true;
+      console.log(`request created in service desk ${json.serviceDeskId}: ${json.issueKey}`)
+      console.log('status code', postResponseStatusCode)
     } else {
-      loading = false;
       throw new Error(`There was an error posting the form: ${res.status}, ${res.statusText}`)
     }
-     
+    } catch(error) {
+      loading = false;
+      submitted = true;
+      console.log(`fetch to /api POST failed: ${error}`)
     }
+     
+  }
+
+  const startOver = () => {
+    //unhide the form, hide the submission message, reset the form
+    hidden = !hidden;
+    submitted = !submitted;
+    document.querySelector('form').reset()
+  }
 </script>
 
+<main>
 
-
-<!-- <form on:submit|preventDefault={onSubmit}> -->
-<form on:submit|preventDefault={onSubmit}>
-   
-      <sl-input class="label-on-left" label="Name" name="name" id="name" type="name" ></sl-input>
+  <form on:submit|preventDefault={onSubmit} class:hidden>
     
-      <sl-input class="label-on-left" label="Email address" name="email" id="email" type="email" required></sl-input>
-   
-      <sl-input class="label-on-left" label="Short summary" name="summary" id="summary" type="text" required></sl-input>
-   
-      <sl-input class="label-on-left" label="Description or URL of the book" name="bookDescription" id="bookDescription" type="text" ></sl-input>
-     
-      <sl-textarea class="label-on-left" label="Full description of problem or question" name="description" id="description" ></sl-textarea>
-   
-      <input name="userURL" id="userURL" type="hidden" bind:value="{userURL}" />
-      <input name="userAgent" id="userAgent" type="hidden" bind:value="{userAgent}" />
-      <input name="userAuthStatus" id="userAuthStatus" type="hidden" bind:value="{userAuthStatus}" />
-    
-      <div class="form-options">
-      <sl-button class="btn form-button" variant="default" type="submit" value="Submit" aria-label="Submit">Cancel</sl-button>
-      <sl-button class="btn form-button" variant="primary" type="submit" value="Submit" aria-label="Submit" {loading}>Submit</sl-button>
-      </div>
-
+        <sl-input class="label-on-left" label="Name" name="name" id="name" type="name" ></sl-input>
       
-      <!-- <FormMessage /> -->
+        <sl-input class="label-on-left" label="Email address" name="email" id="email" type="email" required></sl-input>
     
-      <section>
+        <sl-input class="label-on-left" label="Short summary" name="summary" id="summary" type="text" required></sl-input>
+    
+        <sl-input class="label-on-left" label="Description or URL of the book" name="bookDescription" id="bookDescription" type="text" ></sl-input>
+      
+        <sl-textarea class="label-on-left" label="Full description of problem or question" name="description" id="description" ></sl-textarea>
+    
+        <input name="userURL" id="userURL" type="hidden" bind:value="{userURL}" />
+        <input name="userAgent" id="userAgent" type="hidden" bind:value="{userAgent}" />
+        <input name="userAuthStatus" id="userAuthStatus" type="hidden" bind:value="{userAuthStatus}" />
+      
+        <div class="form-options">
+        <sl-button class="btn form-button" variant="default" type="submit" value="Submit" aria-label="Submit">Cancel</sl-button>
+        <sl-button class="btn form-button" variant="primary" type="submit" value="Submit" aria-label="Submit" {loading}>Submit</sl-button>
+        </div>
+
+    </form>
+
+    <!-- TODO: use props to make these messages more modular <FormMessage /> -->
+   {#if submitted}
+   <section>
         {#if postResponseStatusCode === 200}
         <div transition:slide>
           <sl-alert variant="success" open>
             <sl-icon slot="icon" name="check2-circle"></sl-icon>
             <strong>Thank you!</strong><br />
             Your feedback has been submitted.
+            <sl-button variant="default" on:click={startOver} on:keypress={startOver}><sl-icon slot="suffix" name="arrow-counterclockwise"></sl-icon>Start over</sl-button>
           </sl-alert> 
         </div>
         {:else if postResponseStatusCode === 429}
@@ -102,8 +122,8 @@
             You have reached the maximum amount of submissions for this time period. Please submit your request again another time.
           </sl-alert> 
         </div>
-        {:else if postResponseStatusCode === 500}
-        <div transition:slide>
+        {:else}
+        <div transition:slide="{{duration: 300}}">
           <sl-alert variant="danger" open>
             <sl-icon slot="icon" name="exclamation-octagon"></sl-icon>
             <strong>Oops!</strong><br />
@@ -112,7 +132,8 @@
         </div>
         {/if}
       </section>
-  </form>
+      {/if}
+    </main>
 
   <style>
     
@@ -141,6 +162,10 @@
       justify-content: flex-end;
       gap:10px;
       padding: 1em 0;
+    }
+
+    .hidden {
+      display:none;
     }
   
   </style>
