@@ -28,41 +28,59 @@
   let hidden = false;
   // when true, shows the success/failure alert message
   let submitted = false;
-  
-  const onSubmit = async () => {
-    loading = true;
+
+  const postForm = async () => {
     //shoelace serializer for turning FormData into JSON
     const form = document.querySelector('form')
     const data = serialize(form)
 
-    try {
-      const res = await fetch('http://localhost:5000/api', {
-            method: 'POST', 
-              body: JSON.stringify(data),
-              headers: {
-                  'Content-Type': 'application/json',
-                  'Accept': 'application/json'
-              }
-          })
-
-      const json = await res.json()
-      postResponseStatusCode = res.status;
-      loading = false;
-      submitted = true;
-
-      if (res.ok) {
-        hidden = true;
-        console.log(`request created in service desk ${json.serviceDeskId}: ${json.issueKey}`)
-        console.log('status code', postResponseStatusCode)
-      } else {
-        throw new Error(`There was an error posting the form: ${res.status}, ${res.statusText}`)
-      }
-    } catch(error) {
-      loading = false;
-      submitted = true;
-      console.log(`fetch to /api POST failed: ${error}`)
+    const response = await fetch('http://localhost:5000/api', {
+        method: 'POST', 
+          body: JSON.stringify(data),
+          headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+          }
+    })
+        
+    // did something go wrong with the fetch?
+    // if yes, the function stops here
+    if (!response.ok) {
+      postResponseStatusCode = response.status; 
+      throw new Error(`status: ${response.status}`);
     }
-     
+
+    // otherwise, return the jira response json data
+    const json = await response.json()
+    postResponseStatusCode = response.status;
+
+    return json;
+  }
+
+  // handles front-end reaction to form submission
+  const onSubmit = async () => {
+      // set the submit button spinner spinning
+      loading = true;
+
+      // do the post fetch function
+      postForm()
+      
+      // if no error, hide form and log new issue ID
+      .then(jiraResponseData => {
+        loading = false;
+        submitted = true;
+        hidden = true;
+
+        console.log(`request created in service desk ${jiraResponseData.serviceDeskId}: ${jiraResponseData.issueKey}`)
+        console.log('status code', postResponseStatusCode)
+      })
+
+      // if something went wrong, stop the submit button spinner, show appropriate error message to user, log error message
+      .catch((error) => {
+        loading = false;
+        submitted = true;
+        console.log(`There was an error posting the form, ${error}`)
+      })
   }
 
   const startOver = () => {
