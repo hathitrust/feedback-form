@@ -58,7 +58,7 @@
   }
 
   // handles front-end reaction to form submission
-  const onSubmit = async () => {
+  const onSubmit = () => {
       // set the submit button spinner spinning
       loading = true;
 
