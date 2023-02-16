@@ -13,28 +13,28 @@
 
   //takes long string output of document.cookie and splits it into a usable javascript object
   let cookies: object = document.cookie
-  .split(';')
-  .map(cookie => cookie.split('='))
-  .reduce((accumulator, [key, value]) => ({ ...accumulator, [key.trim()]: decodeURIComponent(value) }), {});
+    .split(';')
+    .map(cookie => cookie.split('='))
+    .reduce((accumulator, [key, value]) => ({ ...accumulator, [key.trim()]: decodeURIComponent(value) }), {});
 
   //if user isn't logged in, HTstatus cookie won't exist
   let userAuthStatus: string = cookies.HTstatus || 'not logged in';
 
-  let postResponseStatusCode;
+  let postResponseStatusCode: number;
 
   // when true, spinner on submit button animates
-  let loading = false;
+  let loading: boolean = false;
   // when true, hides the element (in this case, the form)
-  let hidden = false;
+  let hidden: boolean = false;
   // when true, shows the success/failure alert message
-  let submitted = false;
+  let submitted: boolean = false;
 
-  const postForm = async () => {
+  const postForm = async (): Promise<any> => {
     //shoelace serializer for turning FormData into JSON
     const form = document.querySelector('form')
     const data = serialize(form)
 
-    const response = await fetch('http://localhost:5000/api', {
+    return fetch('http://localhost:5000/api', {
         method: 'POST', 
           body: JSON.stringify(data),
           headers: {
@@ -42,20 +42,20 @@
               'Accept': 'application/json'
           }
     })
-        
-    // did something go wrong with the fetch?
-    // if yes, the function stops here
-    if (!response.ok) {
-      postResponseStatusCode = response.status; 
-      throw new Error(`status: ${response.status}`);
+      .then(response => {
+
+        // did something go wrong with the fetch?
+        // if yes, the function stops here
+        if (!response.ok) {
+          postResponseStatusCode = response.status;
+          throw new Error(`status: ${response.status}`);
+        }
+
+        // otherwise, return jira response promise
+        postResponseStatusCode = response.status;
+        return response.json();
+      })
     }
-
-    // otherwise, return the jira response json data
-    const json = await response.json()
-    postResponseStatusCode = response.status;
-
-    return json;
-  }
 
   // handles front-end reaction to form submission
   const onSubmit = () => {
@@ -64,7 +64,6 @@
 
       // do the post fetch function
       postForm()
-      
       // if no error, hide form and log new issue ID
       .then(jiraResponseData => {
         loading = false;
